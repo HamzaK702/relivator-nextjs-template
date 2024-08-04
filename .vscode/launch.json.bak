@@ -1,76 +1,74 @@
 {
-  "version": "0.2.0",
+  "compounds": [
+    {
+      "configurations": ["Launch Next.js"],
+      "name": "Launch Next.js"
+    },
+    {
+      "configurations": ["Launch Next.js", "Launch Next.js in Chrome"],
+      "name": "Launch Next.js and Chrome"
+    }
+  ],
   "configurations": [
     {
       "name": "Attach by Process ID",
-      "type": "node",
-      "request": "attach",
       "processId": "${command:PickProcess}",
-      "restart": true
+      "request": "attach",
+      "restart": true,
+      "type": "node"
     },
     {
-      "name": "Launch Next.js",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
-      "env": { "NODE_OPTIONS": "--inspect" },
       "console": "internalConsole",
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "name": "Launch Next.js",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "request": "launch",
       "sourceMaps": true,
-      "trace": true
+      "trace": true,
+      "type": "node"
     },
     {
       "name": "Launch Next.js in Chrome",
+      "request": "launch",
       "type": "chrome",
-      "request": "launch",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}"
     },
     {
-      "name": "Launch Next.js in Edge",
-      "type": "msedge",
-      "request": "launch",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}"
-    },
-    {
-      "name": "Launch All Jest Tests",
-      "type": "node",
-      "request": "launch",
+      "args": ["--runInBand"],
       "envFile": "${workspaceFolder}/.env",
+      "name": "Launch All Jest Tests",
       "program": "${workspaceFolder}/node_modules/jest/bin/jest",
-      "args": ["--runInBand"]
+      "request": "launch",
+      "type": "node"
     },
     {
-      "name": "Launch Current Jest Test",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
       "args": ["${relativeFile}"],
       "console": "internalConsole",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Launch Current Jest Test",
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "request": "launch",
+      "type": "node"
     },
     {
-      "name": "Launch Ava Test (experimental)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/ava/entrypoints/cli.mjs",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
-      "runtimeArgs": ["debug", "--break", "${file}"],
-      "skipFiles": ["<node_internals>/**/*.js"],
-      "outputCapture": "std",
-      "runtimeVersion": "20.10.0",
       "console": "integratedTerminal",
-      "env": { "NODE_OPTIONS": "--loader=tsx" }
+      "env": {
+        "NODE_OPTIONS": "--loader=tsx"
+      },
+      "name": "Launch Ava Test (experimental)",
+      "outputCapture": "std",
+      "program": "${workspaceFolder}/node_modules/ava/entrypoints/cli.js",
+      "request": "launch",
+      "runtimeArgs": ["${file}", "--break", "debug"],
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
+      "runtimeVersion": "20.10.0",
+      "skipFiles": ["<node_internals>/**/*.js"],
+      "type": "node"
     }
   ],
-  "compounds": [
-    {
-      "name": "Launch Next.js and Edge",
-      "configurations": ["Launch Next.js", "Launch Next.js in Edge"]
-    },
-    {
-      "name": "Launch Next.js and Chrome",
-      "configurations": ["Launch Next.js", "Launch Next.js in Chrome"]
-    }
-  ]
+  "type": "commonjs",
+  "version": "0.2.0"
 }

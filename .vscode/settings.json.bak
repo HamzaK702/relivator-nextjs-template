@@ -66,6 +66,8 @@
   "debug.toolBarLocation": "docked",
   "diffEditor.experimental.showMoves": true,
   "diffEditor.hideUnchangedRegions.enabled": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
   "editor.bracketPairColorization.enabled": true,
   "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
   "editor.codeActionsOnSave": {
@@ -105,12 +107,22 @@
   "editor.minimap.enabled": true,
   "editor.minimap.renderCharacters": false,
   "editor.multiCursorModifier": "alt",
+  "editor.parameterHints.enabled": true,
+  "editor.quickSuggestions": {
+    "comments": true,
+    "other": true,
+    "strings": true
+  },
+  "editor.quickSuggestionsDelay": 10,
   "editor.rulers": [54, 74, 119],
   "editor.smoothScrolling": true,
   "editor.snippets.codeActions.enabled": true,
   "editor.stickyScroll.enabled": true,
   "editor.suggest.insertMode": "insert",
-  "editor.suggestSelection": "recentlyUsed",
+  "editor.suggest.localityBonus": true,
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.suggestSelection": "first",
+  "editor.tabCompletion": "off",
   "editor.tabSize": 2,
   "editor.tokenColorCustomizations": {
     "comments": "#746f68"
@@ -146,6 +158,7 @@
   "editor.unicodeHighlight.allowedLocales": {
     "tr": true
   },
+  "editor.wordBasedSuggestions": "matchingDocuments",
   "editor.wordWrap": "on",
   "eslint.codeActionsOnSave.mode": "problems",
   "eslint.enable": true,
@@ -299,7 +312,7 @@
     "faq.3.summary"
   ],
   "i18n-ally.keystyle": "nested",
-  "i18n-ally.localesPaths": ["messages"],
+  "i18n-ally.localesPaths": ["addons/messages/reliverse"],
   "i18n-ally.sourceLanguage": "en",
   "indentRainbow.colors": [
     "rgba(58, 12, 163,0.15)",
@@ -382,6 +395,24 @@
   "ruff.lineLength": 88,
   "ruff.nativeServer": true,
   "scm.inputFontFamily": "'JetBrains Mono', 'Geist Mono', 'Monaspace Argon Var', Menlo, Monaco, 'Courier New', monospace",
+  "search.exclude": {
+    "**/*.lock": true,
+    "**/.eslintcache": true,
+    "**/.idea": true,
+    "**/.next": true,
+    "**/.pnp.*": true,
+    "**/.venv": true,
+    "**/.yarn": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/next-env.d.ts": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/reset.d.ts": true,
+    "**/tsconfig.tsbuildinfo": true,
+    "**/yarn-error.log": true
+  },
+  "search.useIgnoreFiles": false,
   "tailwindCSS.classAttributes": ["class", "className", "classNames"],
   "tailwindCSS.experimental.classRegex": [
     ["(?:'|\"|`)([^']*)(?:'|\"|`)", "cx\\(([^)]*)\\)"],
@@ -424,6 +455,7 @@
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.referencesCodeLens.enabled": true,
   "typescript.reportStyleChecksAsWarnings": true,
+  "typescript.tsdk": "node_modules\\typescript\\lib",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "typescript.validate.enable": true,
   "window.autoDetectColorScheme": true,

@@ -1,7 +1,9 @@
 "use client";
+
 import { MapPin, Navigation } from "lucide-react";
 import React, { useRef, useState } from "react";
 
+import { useStoreSettings } from "~/lib/hooks/use-store-settings";
 import { Button } from "~/ui/primitives/button";
 import { Input } from "~/ui/primitives/input";
 import {
@@ -15,7 +17,7 @@ const Hero = () => {
   const [address, setAddress] = useState<string>("");
   // const [isMapOpen, setIsMapOpen] = useState<boolean>(false);
   const mapRef = useRef<HTMLDivElement>(null);
-
+  const { settings } = useStoreSettings();
   const handleConfirmAddress = () => {
     document.body.click(); // Close popover
   };
@@ -48,7 +50,7 @@ const Hero = () => {
         <img
           alt="Food background"
           className="h-full w-full object-cover opacity-80"
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=500"
+          src={settings?.headerImage}
         />
         <div
           className={`
@@ -71,7 +73,7 @@ const Hero = () => {
               lg:text-5xl
             `}
           >
-            Discover Authentic Pakistani Cuisine
+            {settings?.bannerHeading}
           </h2>
           <p className="mb-8 max-w-md text-lg text-gray-700">
             Experience traditional flavors and spices that will transport you

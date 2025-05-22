@@ -1,9 +1,10 @@
 import axios, { AxiosResponse } from "axios";
 
+import { MenuItemResponse } from "./types/menu-item-response";
 import { OnlineStoreSettings } from "./types/online-store-settings";
 
 const BASE_URL = "http://localhost:3000";
-const storeId = process.env.STORE_ID;
+const storeId = process.env.STORE_ID || "5df5796d-bacf-46ba-a4b3-fe308854d703";
 
 const BACKEND_BASE_URL = {
   v1: `${BASE_URL}`,
@@ -27,4 +28,12 @@ export const getStoreSettings = async (): Promise<
   AxiosResponse<OnlineStoreSettings>
 > => {
   return await backendInstance("v1").get(`/online/store/settings/${storeId}`);
+};
+
+export const getPopularItems = async (
+  limit = 4
+): Promise<AxiosResponse<MenuItemResponse[]>> => {
+  return await backendInstance("v1").get(
+    `/online/store/${storeId}/popular-items?limit=${limit}`
+  );
 };

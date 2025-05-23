@@ -51,3 +51,11 @@ export interface PaginationMeta {
   totalItems: number;
   totalPages: number;
 }
+
+export interface StoreMenuResponse {
+  categoryName: string;
+  description: string;
+  id: string;
+  menuItems: MenuItem[];
+  sorting_index: number;
+}

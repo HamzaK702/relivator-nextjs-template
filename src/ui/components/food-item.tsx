@@ -45,7 +45,7 @@ const FoodItem = ({ description, image, name, price }: FoodItemProps) => {
           {description}
         </p>
         <div className="flex items-center justify-between">
-          <p className="text-restaurant-primary font-semibold">{price}</p>
+          <p className="text-restaurant-primary font-semibold">PKR {price}</p>
           <Button
             className={`
               hover:text-restaurant-primary

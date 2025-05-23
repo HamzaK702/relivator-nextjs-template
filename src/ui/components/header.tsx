@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { signOut, useSession } from "~/lib/auth-client";
 import { cn } from "~/lib/cn";
+import { useStoreSettings } from "~/lib/hooks/use-store-settings";
 import { Cart } from "~/ui/components/cart";
 import { Button } from "~/ui/primitives/button";
 import {
@@ -28,6 +29,7 @@ interface HeaderProps {
 
 export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
   const pathname = usePathname();
+  const { settings } = useStoreSettings();
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -77,7 +79,7 @@ export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
                     `,
                 )}
               >
-                Relivator
+                {settings?.storeName}
               </span>
             </Link>
             <nav

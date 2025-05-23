@@ -1,10 +1,13 @@
+'use client';
 import { Facebook, Github, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "~/lib/cn";
+import { useStoreStatus } from "~/store/useStoreSettingsStore";
 import { Button } from "~/ui/primitives/button";
 
 export function Footer({ className }: { className?: string }) {
+  const { storeName } = useStoreStatus();
   return (
     <footer className={cn("border-t bg-background", className)}>
       <div
@@ -28,7 +31,7 @@ export function Footer({ className }: { className?: string }) {
                   text-xl font-bold tracking-tight text-transparent
                 `}
               >
-                Relivator
+                {storeName}
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">

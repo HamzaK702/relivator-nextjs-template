@@ -5,7 +5,7 @@ import {
   MenuItemResponse,
   StoreMenuResponse,
 } from "./types/menu-item-response";
-import { OnlineStoreSettings } from "./types/online-store-settings";
+import { OnlineStoreSettings, StoreInfoResponse } from "./types/online-store-settings";
 import { StoreCategoryResponse } from "./types/store-category-response";
 
 const BASE_URL = "http://localhost:3000";
@@ -25,8 +25,8 @@ const backendInstance = (version: keyof typeof BACKEND_BASE_URL) => {
   return instance;
 };
 
-export const getStoreInfo = async (): Promise<AxiosResponse<any>> => {
-  return backendInstance("v1").get(`/online/store/${storeId}`);
+export const getStoreInfo = async (): Promise<AxiosResponse<StoreInfoResponse>> => {
+  return await backendInstance("v1").get(`/online/store/${storeId}`);
 };
 
 export const getStoreSettings = async (): Promise<

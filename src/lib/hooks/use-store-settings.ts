@@ -2,27 +2,73 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AxiosResponse } from "axios";
 import { useEffect } from "react";
 
-import { getStoreSettings } from "~/network";
-import { OnlineStoreSettings } from "~/network/types/online-store-settings";
-import { useOnlineStoreSettings } from "~/store/useStoreSettingsStore";
+import { getStoreInfo } from "~/network";
+import { StoreInfoResponse } from "~/network/types/online-store-settings";
+import { useOnlineStoreSettings, useStoreInfo, useStoreManager } from "~/store/useStoreSettingsStore";
 
 import { queryKeys } from "../queryClient";
 
-export function useStoreSettings() {
+// New hook: Complete store data management
+export function useStoreData() {
   const queryClient = useQueryClient();
-  const { settings, updateSettings } = useOnlineStoreSettings();
+  const { updateAllStoreData } = useStoreManager();
+  
+  // Get data from individual hooks
+  const settings = useOnlineStoreSettings((state) => state.settings);
+  const storeInfo = useStoreInfo((state) => ({
+    isOpen: state.isOpen,
+    phone: state.phone,
+    profilePic: state.profilePic,
+    rating: state.rating,
+    storeName: state.storeName,
+  }));
 
-  const query = useQuery<AxiosResponse<OnlineStoreSettings>>({
+  const query = useQuery<StoreInfoResponse>({
     queryFn: async () => {
-      console.log("Fetching store settings...");
-      const response = await getStoreSettings();
-      console.log("Fetched data:", response);
+      console.log("Fetching complete store data...");
+      const response = await getStoreInfo();
+      console.log("Fetched complete store data:", response);
       return response;
     },
-    queryKey: queryKeys.storeSettings,
+    queryKey: queryKeys.storeInfo,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      console.log("Updating all store data with:", query.data);
+      updateAllStoreData(query.data);
+    }
+  }, [query.data, updateAllStoreData]);
+
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.storeInfo });
+  };
+
+  return {
+    ...query,
+    completeData: query.data,
+    refreshData,
+    settings,
+    storeInfo,
+  };
+}
+
+export function useStoreSettings() {
+  const queryClient = useQueryClient();
+  const { settings } = useOnlineStoreSettings();
+  const { updateAllStoreData } = useStoreManager();
+
+  const query = useQuery<StoreInfoResponse>({
+    queryFn: async () => {
+      console.log("Fetching store info...");
+      const response = await getStoreInfo();
+      console.log("Fetched store data:", response);
+      return response;
+    },
+    queryKey: queryKeys.storeInfo, // Updated query key
     staleTime: 5 * 60 * 1000,
   });
 
@@ -36,33 +82,60 @@ export function useStoreSettings() {
     settings: settings,
   });
 
-  console.log("query.data structure:", JSON.stringify(query.data));
+  console.log("query.data structure:", JSON.stringify(query.data, null, 2));
 
   useEffect(() => {
-    // Check if we have query.data first
     if (query.data) {
-      console.log("query.data exists, type:", typeof query.data);
-
-      // Check if query.data.data exists (for Axios response)
-      if ("data" in query.data) {
-        console.log("Updating with query.data.data:", query.data.data);
-        updateSettings(query.data.data);
-      } else {
-        // If query.data is the settings object directly
-        console.log("Updating with query.data directly:", query.data);
-        updateSettings(query.data as unknown as OnlineStoreSettings);
-      }
+      console.log("Updating all store data with:", query.data);
+      // Update all store data including settings
+      updateAllStoreData(query.data);
     }
-  }, [query.data, updateSettings]);
+  }, [query.data, updateAllStoreData]);
 
   const refreshSettings = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.storeSettings });
+    queryClient.invalidateQueries({ queryKey: queryKeys.storeInfo });
   };
 
   return {
     ...query,
     refreshSettings,
-    // Make sure to extract the data property from the Axios response
-    settings: query.data?.data || settings,
+    // Return settings from zustand store
+    settings: settings,
+    // Also return the complete store data if needed
+    storeData: query.data,
+  };
+}
+
+// Alternative: If you want a hook specifically for settings only
+export function useStoreSettingsOnly() {
+  const queryClient = useQueryClient();
+  const { settings, updateSettings } = useOnlineStoreSettings();
+
+  const query = useQuery<StoreInfoResponse>({
+    queryFn: async () => {
+      console.log("Fetching store info for settings...");
+      const response = await getStoreInfo();
+      console.log("Fetched store data:", response);
+      return response;
+    },
+    queryKey: queryKeys.storeInfo,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (query.data?.onlineStoreSettings) {
+      console.log("Updating only settings with:", query.data.onlineStoreSettings);
+      updateSettings(query.data.onlineStoreSettings);
+    }
+  }, [query.data?.onlineStoreSettings, updateSettings]);
+
+  const refreshSettings = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.storeInfo });
+  };
+
+  return {
+    ...query,
+    refreshSettings,
+    settings: settings,
   };
 }

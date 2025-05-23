@@ -1,6 +1,6 @@
 import { dehydrate } from "@tanstack/react-query";
 
-import { getStoreSettings } from "../network";
+import { getStoreInfo } from "../network";
 import { getQueryClient, queryKeys } from "./queryClient";
 
 export async function prefetchStoreSettings() {
@@ -8,7 +8,7 @@ export async function prefetchStoreSettings() {
 
   await queryClient.prefetchQuery({
     queryFn: async () => {
-      const { data } = await getStoreSettings();
+      const { data } = await getStoreInfo()
       return data;
     },
     queryKey: queryKeys.storeSettings,

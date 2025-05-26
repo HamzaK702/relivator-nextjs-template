@@ -39,9 +39,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { Address, OnlineStoreSettings, StoreInfoResponse, StorePartyMember } from "~/network/types/online-store-settings";
-
-
+import {
+  Address,
+  OnlineStoreSettings,
+  StoreInfoResponse,
+  StorePartyMember,
+} from "~/network/types/online-store-settings";
 
 // 1. Main Store Info Hook (without nested data)
 interface StoreInfoState {
@@ -65,9 +68,11 @@ interface StoreInfoState {
   slug: null | string;
   storeLink: null | string;
   storeName: null | string;
-  
+
   subscriptionPackage: null | string;
-  updateStoreInfo: (storeInfo: Omit<StoreInfoResponse, 'onlineStoreSettings' | 'party'>) => void;
+  updateStoreInfo: (
+    storeInfo: Omit<StoreInfoResponse, "onlineStoreSettings" | "party">
+  ) => void;
 }
 
 export const useStoreInfo = create<StoreInfoState>()(
@@ -136,7 +141,7 @@ export const useStoreInfo = create<StoreInfoState>()(
 interface OnlineStoreSettingsState {
   lastUpdated: null | number;
   resetSettings: () => void;
-  
+
   settings: null | OnlineStoreSettings;
   updateSettings: (settings: OnlineStoreSettings) => void;
 }
@@ -171,7 +176,7 @@ export const useOnlineStoreSettings = create<OnlineStoreSettingsState>()(
 interface StoreAddressState {
   address: Address | null;
   lastUpdated: null | number;
-  
+
   resetAddress: () => void;
   updateAddress: (address: Address) => void;
 }
@@ -206,7 +211,7 @@ export const useStoreAddress = create<StoreAddressState>()(
 interface StorePartyState {
   getMainPartyMember: () => null | StorePartyMember;
   lastUpdated: null | number;
-  
+
   party: StorePartyMember[];
   resetParty: () => void;
   updateParty: (party: StorePartyMember[]) => void;
@@ -243,10 +248,11 @@ export const useStoreParty = create<StorePartyState>()(
   )
 );
 
-// 5. Master Hook - Updates all stores from complete API response
 export const useStoreManager = () => {
   const updateStoreInfo = useStoreInfo((state) => state.updateStoreInfo);
-  const updateSettings = useOnlineStoreSettings((state) => state.updateSettings);
+  const updateSettings = useOnlineStoreSettings(
+    (state) => state.updateSettings
+  );
   const updateAddress = useStoreAddress((state) => state.updateAddress);
   const updateParty = useStoreParty((state) => state.updateParty);
 
@@ -256,17 +262,13 @@ export const useStoreManager = () => {
   const resetParty = useStoreParty((state) => state.resetParty);
 
   const updateAllStoreData = (apiResponse: StoreInfoResponse) => {
-    // Update main store info (excluding nested objects)
     const { onlineStoreSettings, party, ...storeInfo } = apiResponse;
     updateStoreInfo(storeInfo);
 
-    // Update settings
     updateSettings(onlineStoreSettings);
 
-    // Update party
     updateParty(party);
 
-    // Update address from first party member
     if (party.length > 0 && party[0].address) {
       updateAddress(party[0].address);
     }
@@ -290,7 +292,7 @@ export const useStoreStatus = () => {
   const isOpen = useStoreInfo((state) => state.isOpen);
   const storeName = useStoreInfo((state) => state.storeName);
   const rating = useStoreInfo((state) => state.rating);
-  
+
   return { isOpen, rating, storeName };
 };
 
@@ -299,11 +301,11 @@ export const useStoreDeliveryInfo = () => {
   const deliveryMethods = useStoreInfo((state) => state.deliveryMethods);
   const minDeliveryFee = useStoreInfo((state) => state.minDeliveryFee);
   const maxDeliveryFee = useStoreInfo((state) => state.maxDeliveryFee);
-  
-  return { 
-    address, 
-    deliveryFee: address?.delivery_fee || 0, 
-    deliveryMethods, 
+
+  return {
+    address,
+    deliveryFee: address?.delivery_fee || 0,
+    deliveryMethods,
     maxDeliveryFee,
     maxRadius: address?.max_radius || 0,
     minDeliveryFee,

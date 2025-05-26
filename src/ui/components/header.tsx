@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { signOut, useSession } from "~/lib/auth-client";
 import { cn } from "~/lib/cn";
-import { useStoreSettings } from "~/lib/hooks/use-store-settings";
+import { useStoreStatus } from "~/store/useStoreSettingsStore";
 import { Cart } from "~/ui/components/cart";
 import { Button } from "~/ui/primitives/button";
 import {
@@ -29,7 +29,7 @@ interface HeaderProps {
 
 export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
   const pathname = usePathname();
-  const { settings } = useStoreSettings();
+  const { storeName } = useStoreStatus();
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -76,10 +76,10 @@ export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
                     `
                       bg-gradient-to-r from-primary to-primary/70 bg-clip-text
                       tracking-tight text-transparent
-                    `,
+                    `
                 )}
               >
-                {settings?.storeName}
+                {storeName}
               </span>
             </Link>
             <nav
@@ -104,7 +104,7 @@ export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
                           `,
                           isActive
                             ? "font-semibold text-primary"
-                            : "text-muted-foreground",
+                            : "text-muted-foreground"
                         )}
                         href={item.href}
                       >
@@ -230,7 +230,7 @@ export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
                             : `
                               text-destructive
                               focus:text-destructive
-                            `,
+                            `
                         )}
                         onClick={handleSignOut}
                       >
@@ -291,7 +291,7 @@ export function Header({ isDashboard = false, showAuth = true }: HeaderProps) {
                       : `
                         text-foreground
                         hover:bg-muted/50 hover:text-primary
-                      `,
+                      `
                   )}
                   href={item.href}
                   key={item.name}

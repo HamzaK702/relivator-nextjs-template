@@ -11,5 +11,10 @@
   "eslint.rules.customizations": [
     { "rule": "readable-tailwind/*", "severity": "off" },
     { "rule": "perfectionist/*", "severity": "off" }
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#300F85",
+    "titleBar.activeBackground": "#4415BA",
+    "titleBar.activeForeground": "#FAF9FE"
+  }
 }

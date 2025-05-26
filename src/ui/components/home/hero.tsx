@@ -4,6 +4,7 @@ import { MapPin, Navigation } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 import { useStoreSettings } from "~/lib/hooks/use-store-settings";
+import { useStoreAddress } from "~/store/useStoreSettingsStore";
 import { Button } from "~/ui/primitives/button";
 import { Input } from "~/ui/primitives/input";
 import {
@@ -14,10 +15,11 @@ import {
 
 const Hero = () => {
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("delivery");
-  const [address, setAddress] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
   // const [isMapOpen, setIsMapOpen] = useState<boolean>(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const { settings } = useStoreSettings();
+  const { address } = useStoreAddress();
   const handleConfirmAddress = () => {
     document.body.click(); // Close popover
   };
@@ -26,7 +28,7 @@ const Hero = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setAddress(
+          setLocation(
             `Lat: ${position.coords.latitude.toFixed(
               4
             )}, Lng: ${position.coords.longitude.toFixed(4)}`
@@ -137,9 +139,9 @@ const Hero = () => {
                       `}
                     >
                       <MapPin className="text-restaurant-primary mr-3 h-5 w-5" />
-                      {address ? (
+                      {location ? (
                         <span className="flex-1 truncate text-sm text-gray-700">
-                          {address}
+                          {location}
                         </span>
                       ) : (
                         <span className="flex-1 text-sm text-gray-500">
@@ -153,9 +155,9 @@ const Hero = () => {
                       <h4 className="text-sm font-medium">Delivery Address</h4>
                       <Input
                         className="w-full"
-                        onChange={(e) => setAddress(e.target.value)}
+                        onChange={(e) => setLocation(e.target.value)}
                         placeholder="Enter your address"
-                        value={address}
+                        value={location}
                       />
 
                       <div
@@ -210,7 +212,8 @@ const Hero = () => {
                   </PopoverContent>
                 </Popover>
                 <p className="text-xs text-gray-500">
-                  Delivery available within 5 miles radius
+                  Delivery available within {address?.max_radius} kilometer
+                  radius
                 </p>
               </div>
             ) : (
@@ -225,13 +228,10 @@ const Hero = () => {
                   `}
                 >
                   <h4 className="text-restaurant-primary text-sm font-medium">
-                    Main Branch
+                    {address?.streetName}
                   </h4>
                   <p className="mt-1 text-xs text-gray-600">
-                    123 Food Street, Lahore, Pakistan
-                  </p>
-                  <p className="text-restaurant-accent mt-1 text-xs">
-                    Open: 10:00 AM - 11:00 PM
+                    {address?.province}
                   </p>
                 </div>
               </div>

@@ -6,14 +6,13 @@ import {
   MenuItem,
   MenuItemStatusEnum,
   StoreMenuResponse,
-} from "~/network/types/menu-item-response"; // Update import path
+} from "~/network/types/menu-item-response";
 
 import FoodItem from "./food-item";
 
-// Cache for menu data
 let menuCache: null | StoreMenuResponse[] = null;
 let cacheTimestamp: null | number = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 const CategoryTabs = () => {
   const [menuData, setMenuData] = useState<StoreMenuResponse[]>([]);
@@ -21,7 +20,6 @@ const CategoryTabs = () => {
   const [error, setError] = useState<null | string>(null);
   const [activeCategory, setActiveCategory] = useState("All");
 
-  // Check if cache is still valid
   const isCacheValid = useCallback(() => {
     return (
       menuCache &&
@@ -36,44 +34,31 @@ const CategoryTabs = () => {
         setLoading(true);
         setError(null);
 
-        // Check cache first (unless force refresh)
         if (!forceRefresh && isCacheValid()) {
-          console.log("Using cached menu data");
           setMenuData(menuCache!);
           setLoading(false);
           return;
         }
 
-        console.log("Fetching menu from API");
         const response = await getStoreMenu();
         const sortedMenu = response.data.sort(
           (a, b) => a.sorting_index - b.sorting_index
         );
 
-        // Update cache
         menuCache = sortedMenu;
         cacheTimestamp = Date.now();
-
         setMenuData(sortedMenu);
-
-        // Set first category as active if none selected
-        if (sortedMenu.length > 0 && activeCategory === "All") {
-          // Keep "All" as default
-        }
       } catch (err: any) {
-        console.error("Error fetching menu:", err);
         setError(err?.response?.data?.message || "Failed to load menu");
 
-        // If there's cached data, use it as fallback
         if (menuCache && menuCache.length > 0) {
-          console.log("Using cached menu as fallback");
           setMenuData(menuCache);
         }
       } finally {
         setLoading(false);
       }
     },
-    [isCacheValid, activeCategory]
+    [isCacheValid]
   );
 
   useEffect(() => {
@@ -81,19 +66,16 @@ const CategoryTabs = () => {
   }, [fetchMenu]);
 
   const handleRetry = useCallback(() => {
-    fetchMenu(true); // Force refresh
+    fetchMenu(true);
   }, [fetchMenu]);
 
-  // Get unique categories from menu data
   const categories = [
     "All",
     ...menuData.map((category) => category.categoryName.trim()),
   ];
 
-  // Filter and flatten menu items based on active category
   const getFilteredItems = (): MenuItem[] => {
     if (activeCategory === "All") {
-      // Return all items from all categories
       return menuData.flatMap((category) =>
         category.menuItems.filter(
           (item) =>
@@ -101,7 +83,6 @@ const CategoryTabs = () => {
         )
       );
     } else {
-      // Return items from selected category
       const selectedCategory = menuData.find(
         (cat) => cat.categoryName.trim() === activeCategory
       );
@@ -116,7 +97,6 @@ const CategoryTabs = () => {
 
   const filteredItems = getFilteredItems();
 
-  // Loading state
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -126,15 +106,15 @@ const CategoryTabs = () => {
         </div>
         <div
           className={`
-            grid grid-cols-1 gap-6
-            sm:grid-cols-2
-            lg:grid-cols-3
-            xl:grid-cols-4
-          `}
+          grid grid-cols-1 gap-6
+          sm:grid-cols-2
+          lg:grid-cols-3
+          xl:grid-cols-4
+        `}
         >
           {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
             <div
-              className={`overflow-hidden rounded-lg border bg-white shadow-sm`}
+              className="overflow-hidden rounded-lg border bg-white shadow-sm"
               key={item}
             >
               <div className="h-48 animate-pulse bg-gray-200"></div>
@@ -150,14 +130,13 @@ const CategoryTabs = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div
           className={`
-            rounded-lg border border-red-200 bg-red-50 p-6 text-center
-          `}
+          rounded-lg border border-red-200 bg-red-50 p-6 text-center
+        `}
         >
           <h3 className="mb-2 text-lg font-semibold text-red-800">
             Failed to Load Menu
@@ -179,7 +158,6 @@ const CategoryTabs = () => {
     );
   }
 
-  // Empty state
   if (menuData.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -198,14 +176,13 @@ const CategoryTabs = () => {
       <div className="mb-8">
         <h2
           className={`
-            font-heading mb-6 text-2xl font-bold text-gray-800
-            md:text-3xl
-          `}
+          font-heading mb-6 text-2xl font-bold text-gray-800
+          md:text-3xl
+        `}
         >
           Explore Our Menu
         </h2>
 
-        {/* Category Slider */}
         <div className="w-full pb-6">
           <div className="relative">
             <div className="overflow-hidden">
@@ -236,25 +213,17 @@ const CategoryTabs = () => {
         </div>
       </div>
 
-      {/* Menu Items Grid */}
       {filteredItems.length > 0 ? (
         <div
           className={`
-            grid grid-cols-1 gap-6
-            sm:grid-cols-2
-            lg:grid-cols-3
-            xl:grid-cols-4
-          `}
+          grid grid-cols-1 gap-6
+          sm:grid-cols-2
+          lg:grid-cols-3
+          xl:grid-cols-4
+        `}
         >
           {filteredItems.map((item) => (
-            <FoodItem
-              description={item.description}
-              image={item.image}
-              key={item.menuItemId}
-              // Pass the full item for customizations, etc.
-              name={item.name.trim()}
-              price={`${item.price}`}
-            />
+            <FoodItem key={item.menuItemId} menuItem={item} />
           ))}
         </div>
       ) : (
@@ -266,7 +235,6 @@ const CategoryTabs = () => {
         </div>
       )}
 
-      {/* Category count indicator */}
       <div className="mt-6 text-center text-sm text-gray-500">
         Showing {filteredItems.length} item
         {filteredItems.length !== 1 ? "s" : ""}

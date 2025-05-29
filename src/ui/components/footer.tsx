@@ -1,9 +1,9 @@
-'use client';
+"use client";
 import { Facebook, Github, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "~/lib/cn";
-import { useStoreStatus } from "~/store/useStoreSettingsStore";
+import { useStoreStatus } from "~/store/useStore";
 import { Button } from "~/ui/primitives/button";
 
 export function Footer({ className }: { className?: string }) {

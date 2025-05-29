@@ -1,41 +1,3 @@
-// import { create } from "zustand";
-// import { persist } from "zustand/middleware";
-
-// import { OnlineStoreSettings } from "~/network/types/online-store-settings";
-
-// interface OnlineStoreSettingsState {
-//   lastUpdated: null | number;
-//   resetSettings: () => void;
-//   settings: null | OnlineStoreSettings;
-//   updateSettings: (settings: OnlineStoreSettings) => void;
-// }
-
-// export const useOnlineStoreSettings = create<OnlineStoreSettingsState>()(
-//   persist(
-//     (set) => ({
-//       lastUpdated: null,
-//       resetSettings: () => {
-//         set({
-//           lastUpdated: null,
-//           settings: null,
-//         });
-//       },
-
-//       settings: null,
-
-//       updateSettings: (settings) => {
-//         set({
-//           lastUpdated: Date.now(),
-//           settings,
-//         });
-//       },
-//     }),
-//     {
-//       name: "online-store-settings-storage",
-//     }
-//   )
-// );
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -46,7 +8,6 @@ import {
   StorePartyMember,
 } from "~/network/types/online-store-settings";
 
-// 1. Main Store Info Hook (without nested data)
 interface StoreInfoState {
   agreementDateTime: null | string;
   averagePrepTime: null | number;
@@ -137,7 +98,6 @@ export const useStoreInfo = create<StoreInfoState>()(
   )
 );
 
-// 2. Online Store Settings Hook
 interface OnlineStoreSettingsState {
   lastUpdated: null | number;
   resetSettings: () => void;
@@ -172,7 +132,6 @@ export const useOnlineStoreSettings = create<OnlineStoreSettingsState>()(
   )
 );
 
-// 3. Store Address Hook
 interface StoreAddressState {
   address: Address | null;
   lastUpdated: null | number;

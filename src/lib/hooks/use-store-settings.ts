@@ -10,7 +10,7 @@ import {
   useOnlineStoreSettings,
   useStoreInfo,
   useStoreManager,
-} from "~/store/useStoreSettingsStore";
+} from "~/store/useStore";
 
 import { queryKeys } from "../queryClient";
 

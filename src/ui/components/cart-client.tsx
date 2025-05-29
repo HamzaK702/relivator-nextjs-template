@@ -8,6 +8,8 @@ import * as React from "react";
 
 import { cn } from "~/lib/cn";
 import { useMediaQuery } from "~/lib/hooks/use-media-query";
+import { useCart, useCartTotal, useCartTotalItems } from "~/store/useCart";
+// Import your cart store
 import { Badge } from "~/ui/primitives/badge";
 import { Button } from "~/ui/primitives/button";
 import {
@@ -26,51 +28,74 @@ import {
   SheetTrigger,
 } from "~/ui/primitives/sheet";
 
-export interface CartItem {
-  category: string;
-  id: string;
-  image: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
+import { CartHydrationWrapper } from "./cart-hydration-wrapper";
 
 interface CartProps {
   className?: string;
-  mockCart: CartItem[];
 }
 
-export function CartClient({ className, mockCart }: CartProps) {
+export function CartClient({ className }: CartProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [cartItems, setCartItems] = React.useState<CartItem[]>(mockCart);
-  const [isMounted, setIsMounted] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // Cart store hooks
+  const {
+    _hasHydrated, // Get hydration status from store
+    clearCart,
+    items: cartItems,
+    removeFromCart,
+    updateQuantity,
+  } = useCart();
 
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  );
+  const totalItems = useCartTotalItems();
+  const cartTotal = useCartTotal();
 
-  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+  const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item,
-      ),
-    );
+    updateQuantity(cartItemId, newQuantity);
   };
 
-  const handleRemoveItem = (id: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  const handleRemoveItem = (cartItemId: string) => {
+    removeFromCart(cartItemId);
   };
 
   const handleClearCart = () => {
-    setCartItems([]);
+    clearCart();
+  };
+
+  // Calculate customizations total for display
+  const getItemDisplayPrice = (item: (typeof cartItems)[0]) => {
+    const basePrice = item.menuItem.price;
+    const customizationPrice = item.customizations.reduce(
+      (sum, customization) => {
+        return (
+          sum +
+          customization.options
+            .filter((option) => option.selected)
+            .reduce((optionSum, option) => optionSum + option.priceModifier, 0)
+        );
+      },
+      0
+    );
+    return (basePrice + customizationPrice) * item.quantity;
+  };
+
+  // Format customizations for display
+  const getItemCustomizationsText = (item: (typeof cartItems)[0]): string => {
+    const selectedCustomizations = item.customizations
+      .map((customization) => {
+        const selectedOptions = customization.options
+          .filter((option) => option.selected)
+          .map((option) => option.name);
+
+        if (selectedOptions.length > 0) {
+          return `${customization.title}: ${selectedOptions.join(", ")}`;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    return selectedCustomizations.join(" | ");
   };
 
   const CartTrigger = (
@@ -103,7 +128,9 @@ export function CartClient({ className, mockCart }: CartProps) {
             <div className="text-sm text-muted-foreground">
               {totalItems === 0
                 ? "Your cart is empty"
-                : `You have ${totalItems} item${totalItems !== 1 ? "s" : ""} in your cart`}
+                : `You have ${totalItems} item${
+                    totalItems !== 1 ? "s" : ""
+                  } in your cart`}
             </div>
           </div>
           {isDesktop && (
@@ -138,14 +165,14 @@ export function CartClient({ className, mockCart }: CartProps) {
                 </p>
                 {isDesktop ? (
                   <SheetClose asChild>
-                    <Link href="/products">
-                      <Button>Browse Products</Button>
+                    <Link href="/menu">
+                      <Button>Browse Menu</Button>
                     </Link>
                   </SheetClose>
                 ) : (
                   <DrawerClose asChild>
-                    <Link href="/products">
-                      <Button>Browse Products</Button>
+                    <Link href="/menu">
+                      <Button>Browse Menu</Button>
                     </Link>
                   </DrawerClose>
                 )}
@@ -168,25 +195,41 @@ export function CartClient({ className, mockCart }: CartProps) {
                   >
                     <div className="relative h-20 w-20 overflow-hidden rounded">
                       <Image
-                        alt={item.name}
+                        alt={item.menuItem.name}
                         className="object-cover"
                         fill
-                        src={item.image}
+                        src={item.menuItem.image}
                       />
                     </div>
                     <div className="ml-4 flex flex-1 flex-col justify-between">
                       <div>
                         <div className="flex items-start justify-between">
-                          <Link
-                            className={`
-                              line-clamp-2 text-sm font-medium
-                              group-hover:text-primary
-                            `}
-                            href={`/products/${item.id}`}
-                            onClick={() => setIsOpen(false)}
-                          >
-                            {item.name}
-                          </Link>
+                          <div className="flex-1">
+                            <div
+                              className={`
+                                line-clamp-2 text-sm font-medium
+                                group-hover:text-primary
+                              `}
+                            >
+                              {item.menuItem.name}
+                            </div>
+                            {/* Display customizations */}
+                            {getItemCustomizationsText(item) && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {getItemCustomizationsText(item)}
+                              </p>
+                            )}
+                            {/* Display notes if any */}
+                            {item.notes && (
+                              <p
+                                className={`
+                                  mt-1 text-xs text-muted-foreground italic
+                                `}
+                              >
+                                Note: {item.notes}
+                              </p>
+                            )}
+                          </div>
                           <button
                             className={`
                               -mt-1 -mr-1 ml-2 rounded-full p-1
@@ -200,9 +243,6 @@ export function CartClient({ className, mockCart }: CartProps) {
                             <span className="sr-only">Remove item</span>
                           </button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {item.category}
-                        </p>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
                         <div className="flex items-center rounded-md border">
@@ -212,6 +252,7 @@ export function CartClient({ className, mockCart }: CartProps) {
                               rounded-l-md border-r text-muted-foreground
                               transition-colors
                               hover:bg-muted hover:text-foreground
+                              disabled:cursor-not-allowed disabled:opacity-50
                             `}
                             disabled={item.quantity <= 1}
                             onClick={() =>
@@ -247,7 +288,7 @@ export function CartClient({ className, mockCart }: CartProps) {
                           </button>
                         </div>
                         <div className="text-sm font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          PKR {getItemDisplayPrice(item).toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -263,34 +304,46 @@ export function CartClient({ className, mockCart }: CartProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">PKR {cartTotal.toFixed(2)}</span>
               </div>
+              {/* {cartSummary?.customizationTotal > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Customizations</span>
+                  <span className="font-medium">
+                    PKR {cartSummary?.customizationTotal.toFixed(2)}
+                  </span>
+                </div>
+              )} */}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Shipping</span>
+                <span className="text-muted-foreground">Delivery</span>
                 <span className="font-medium">Calculated at checkout</span>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-base font-semibold">Total</span>
                 <span className="text-base font-semibold">
-                  ${subtotal.toFixed(2)}
+                  PKR {cartTotal.toFixed(2)}
                 </span>
               </div>
               <Button className="w-full" size="lg">
                 Checkout
               </Button>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 {isDesktop ? (
                   <SheetClose asChild>
-                    <Button variant="outline">Continue Shopping</Button>
+                    <Button className="flex-1" variant="outline">
+                      Continue Shopping
+                    </Button>
                   </SheetClose>
                 ) : (
                   <DrawerClose asChild>
-                    <Button variant="outline">Continue Shopping</Button>
+                    <Button className="flex-1" variant="outline">
+                      Continue Shopping
+                    </Button>
                   </DrawerClose>
                 )}
                 <Button
-                  className="ml-2"
+                  className="flex-1"
                   onClick={handleClearCart}
                   variant="outline"
                 >
@@ -304,49 +357,43 @@ export function CartClient({ className, mockCart }: CartProps) {
     </>
   );
 
-  if (!isMounted) {
+  if (!_hasHydrated) {
     return (
       <div className={cn("relative", className)}>
-        <Button
-          aria-label="Open cart"
-          className="relative h-9 w-9 rounded-full"
-          size="icon"
-          variant="outline"
+        <div
+          className={`
+            relative h-9 w-9 animate-pulse rounded-full border border-gray-200
+            bg-gray-100
+          `}
         >
-          <ShoppingCart className="h-4 w-4" />
-          {totalItems > 0 && (
-            <Badge
-              className={`
-                absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-[10px]
-              `}
-              variant="default"
-            >
-              {totalItems}
-            </Badge>
-          )}
-        </Button>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-4 w-4 animate-pulse rounded bg-gray-300" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("relative", className)}>
-      {isDesktop ? (
-        <Sheet onOpenChange={setIsOpen} open={isOpen}>
-          <SheetTrigger asChild>{CartTrigger}</SheetTrigger>
-          <SheetContent className="flex w-[400px] flex-col p-0">
-            <SheetHeader>
-              <SheetTitle>Shopping Cart</SheetTitle>
-            </SheetHeader>
-            {CartContent}
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Drawer onOpenChange={setIsOpen} open={isOpen}>
-          <DrawerTrigger asChild>{CartTrigger}</DrawerTrigger>
-          <DrawerContent>{CartContent}</DrawerContent>
-        </Drawer>
-      )}
-    </div>
+    <CartHydrationWrapper>
+      <div className={cn("relative", className)}>
+        {isDesktop ? (
+          <Sheet onOpenChange={setIsOpen} open={isOpen}>
+            <SheetTrigger asChild>{CartTrigger}</SheetTrigger>
+            <SheetContent className="flex w-[400px] flex-col p-0">
+              <SheetHeader>
+                <SheetTitle>Shopping Cart</SheetTitle>
+              </SheetHeader>
+              {CartContent}
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Drawer onOpenChange={setIsOpen} open={isOpen}>
+            <DrawerTrigger asChild>{CartTrigger}</DrawerTrigger>
+            <DrawerContent>{CartContent}</DrawerContent>
+          </Drawer>
+        )}
+      </div>
+    </CartHydrationWrapper>
   );
 }

@@ -4,7 +4,7 @@ import { MapPin, Navigation } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 import { useStoreSettings } from "~/lib/hooks/use-store-settings";
-import { useStoreAddress } from "~/store/useStoreSettingsStore";
+import { useStoreAddress } from "~/store/useStore";
 import { Button } from "~/ui/primitives/button";
 import { Input } from "~/ui/primitives/input";
 import {

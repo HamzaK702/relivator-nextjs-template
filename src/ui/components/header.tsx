@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { signOut, useSession } from "~/lib/auth-client";
 import { cn } from "~/lib/cn";
-import { useStoreStatus } from "~/store/useStoreSettingsStore";
+import { useStoreStatus } from "~/store/useStore";
 import { Cart } from "~/ui/components/cart";
 import { Button } from "~/ui/primitives/button";
 import {

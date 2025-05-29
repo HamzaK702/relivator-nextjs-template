@@ -24,7 +24,6 @@ const FoodItem = ({
 }: FoodItemProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Use menuItem props if available, otherwise fall back to individual props
   const itemDescription = menuItem?.description || description || "";
   const itemImage = menuItem?.image || image || "";
   const itemName = menuItem?.name || name || "";

@@ -12,6 +12,12 @@ const nextConfig = {
       { hostname: "api.github.com", protocol: "https" },
       { hostname: "utfs.io", protocol: "https" },
       { hostname: "**.ufs.sh", protocol: "https" },
+      {
+        protocol: "https",
+        hostname: "pinch-images.s3.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 } satisfies NextConfig;

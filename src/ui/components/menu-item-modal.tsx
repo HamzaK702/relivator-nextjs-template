@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 
 import {
@@ -6,6 +6,7 @@ import {
   MenuItemCustomization,
   MenuItemCustomizationOption,
 } from "~/network/types/menu-item-response";
+import { useCart } from "~/store/useCart";
 
 import { Button } from "../primitives/button";
 
@@ -48,6 +49,10 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
     []
   );
+  const [quantity, setQuantity] = useState(1);
+  const [notes, setNotes] = useState("");
+
+  const { addToCart } = useCart();
 
   const initializeCustomizations = useCallback((): SelectedCustomizations => {
     return menuItem.customizations.reduce((acc, customization) => {
@@ -61,6 +66,8 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
     if (isOpen) {
       setSelectedCustomizations(initializeCustomizations());
       setValidationErrors([]);
+      setQuantity(1);
+      setNotes("");
     }
   }, [isOpen, initializeCustomizations]);
 
@@ -118,18 +125,107 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
     }, [] as ValidationError[]);
   }, [menuItem.customizations, selectedCustomizations]);
 
+  // Convert selectedCustomizations to the format expected by cart store
+  const formatCustomizationsForCart = useCallback((): Record<
+    string,
+    string[]
+  > => {
+    const formatted: Record<string, string[]> = {};
+
+    Object.entries(selectedCustomizations).forEach(
+      ([customizationId, selection]) => {
+        if (Array.isArray(selection)) {
+          // Multiple selection - already in correct format
+          formatted[customizationId] = selection;
+        } else if (selection && selection !== "") {
+          // Single selection - convert to array
+          formatted[customizationId] = [selection];
+        }
+      }
+    );
+
+    return formatted;
+  }, [selectedCustomizations]);
+
+  // Calculate total price including customizations
+  const calculateTotalPrice = useCallback((): number => {
+    let total = menuItem.price;
+
+    Object.entries(selectedCustomizations).forEach(
+      ([customizationId, selection]) => {
+        const customization = menuItem.customizations.find(
+          (c) => c.customizationId === customizationId
+        );
+
+        if (!customization) return;
+
+        const selectedOptionIds = Array.isArray(selection)
+          ? selection
+          : [selection];
+
+        selectedOptionIds.forEach((optionId) => {
+          if (optionId) {
+            const option = customization.options.find(
+              (opt) => opt.customizationOptionId === optionId
+            );
+            if (option) {
+              total += option.priceModifier;
+            }
+          }
+        });
+      }
+    );
+
+    return total * quantity;
+  }, [menuItem, selectedCustomizations, quantity]);
+
   const handleAddToCart = useCallback(() => {
     const errors = validateCustomizations();
     setValidationErrors(errors);
 
     if (errors.length === 0) {
-      console.log("Selected customizations:", {
-        customizations: selectedCustomizations,
-        menuItem,
-      });
-      onClose();
+      try {
+        // Convert customizations to cart format
+        const cartCustomizations = formatCustomizationsForCart();
+
+        // Add to cart using the store
+        const cartItemId = addToCart(
+          menuItem,
+          cartCustomizations,
+          quantity,
+          notes.trim() || undefined
+        );
+
+        console.log("Item added to cart:", {
+          cartItemId,
+          customizations: cartCustomizations,
+          menuItem: menuItem.name,
+          notes: notes.trim(),
+          quantity,
+        });
+
+        // Close modal on success
+        onClose();
+      } catch (error) {
+        console.error("Error adding item to cart:", error);
+        // You could show an error message to the user here
+      }
     }
-  }, [validateCustomizations, menuItem, selectedCustomizations, onClose]);
+  }, [
+    validateCustomizations,
+    formatCustomizationsForCart,
+    addToCart,
+    menuItem,
+    quantity,
+    notes,
+    onClose,
+  ]);
+
+  const handleQuantityChange = useCallback((newQuantity: number) => {
+    if (newQuantity >= 1) {
+      setQuantity(newQuantity);
+    }
+  }, []);
 
   const renderCustomizationOption = useCallback(
     (
@@ -199,9 +295,7 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
           {customization.limit > 0 &&
             customization.selectionType === "MULTIPLE" && (
               <span
-                className={`
-                rounded bg-gray-100 px-2 py-1 text-xs text-gray-500
-              `}
+                className={`rounded bg-gray-100 px-2 py-1 text-xs text-gray-500`}
               >
                 Max {customization.limit}
               </span>
@@ -218,6 +312,8 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
   );
 
   if (!isOpen) return null;
+
+  const totalPrice = calculateTotalPrice();
 
   return (
     <div
@@ -279,15 +375,75 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
             </div>
           )}
 
-          <section className="mb-6 flex items-center gap-4">
-            <span className="font-medium text-gray-900">
-              Base Price: PKR {menuItem.price}
-            </span>
+          {/* Quantity Section */}
+          <section className="mb-6">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-gray-900">Quantity:</span>
+              <div className="flex items-center gap-3">
+                <button
+                  className={MODAL_CLASSES.quantityButton}
+                  disabled={quantity <= 1}
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="min-w-[2rem] text-center font-medium">
+                  {quantity}
+                </span>
+                <button
+                  className={MODAL_CLASSES.quantityButton}
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Notes Section */}
+          <section className="mb-6">
+            <label
+              className="mb-2 block font-medium text-gray-900"
+              htmlFor="notes"
+            >
+              Special Instructions (Optional):
+            </label>
+            <textarea
+              className={`
+                w-full rounded-lg border border-gray-300 p-3 text-sm
+                placeholder-gray-400
+                focus:border-green-500 focus:ring-1 focus:ring-green-500
+                focus:outline-none
+              `}
+              id="notes"
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any special requests or modifications..."
+              rows={3}
+              value={notes}
+            />
+          </section>
+
+          {/* Price Summary */}
+          <section className="mb-6 rounded-lg bg-gray-50 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-gray-900">Total Price:</span>
+              <span className="text-lg font-semibold text-green-600">
+                PKR {totalPrice.toFixed(2)}
+              </span>
+            </div>
+            {quantity > 1 && (
+              <p className="mt-1 text-sm text-gray-500">
+                PKR {(totalPrice / quantity).toFixed(2)} × {quantity}
+              </p>
+            )}
           </section>
         </div>
 
         <footer className={MODAL_CLASSES.footer}>
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-3">
+            <Button onClick={onClose} variant="outline">
+              Cancel
+            </Button>
             <Button
               className={`
                 bg-green-600 px-8 font-medium text-white
@@ -295,7 +451,7 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({
               `}
               onClick={handleAddToCart}
             >
-              Add to Cart
+              Add to Cart - PKR {totalPrice.toFixed(2)}
             </Button>
           </div>
         </footer>
